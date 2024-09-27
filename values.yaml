@@ -1,0 +1,3 @@
+app:
+  postgresql:
+    database: test-db

@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sample-postgres
+spec:
+  selector:
+    matchLabels:
+      component-framework: postgres
+      component-name: sample-postgres
+  serviceName: sample-postgres-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component-framework: postgres
+        component-name: sample-postgres
+    spec:
+      containers:
+        - name: sample-postgres-container
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: pg-db-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-db-secret
+                  key: password
+            - name: PGDATA
+              value: /data/postgresql/pgdata
+            - name: POSTGRES_DB
+              value: {{ .Values.app.postgresql.database }}
+          image: "postgres:latest"
+          args: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
+          volumeMounts:
+            - name: sample-postgres-db-storage
+              mountPath: /data/postgresql
+            - name: sample-postgres-backup
+              mountPath: /database_archive
+            - name: init-db
+              mountPath: /docker-entrypoint-initdb.d/setup-db.sql
+              subPath: setup-db.sql
+              readOnly: true
+            - name: postgresql-conf
+              mountPath: /etc/postgresql/postgresql.conf
+              subPath: postgresql.conf
+              readOnly: true
+          ports:
+            - containerPort: 5432
+          imagePullPolicy: Always
+      volumes:
+        - name: init-db
+          configMap:
+            name: sample-postgres-configmap
+            items:
+              - key: setup-db.sql
+                path: setup-db.sql
+        - name: postgresql-conf
+          configMap:
+            name: sample-postgres-configmap
+            items:
+              - key: postgresql.conf
+                path: postgresql.conf
+      restartPolicy: Always
+  volumeClaimTemplates:
+    - metadata:
+        name: sample-postgres-db-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: standard
+    - metadata:
+        name: sample-postgres-backup
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: standard

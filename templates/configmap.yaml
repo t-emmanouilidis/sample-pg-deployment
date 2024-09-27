@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sample-postgres-configmap
+data:
+  setup-db.sql: |
+      CREATE TABLE IF NOT EXISTS book
+      (
+        id         BIGSERIAL NOT NULL PRIMARY KEY,
+        isbn       VARCHAR(50)  NOT NULL,
+        title      VARCHAR(500) NOT NULL,
+        created    TIMESTAMP WITH TIME ZONE,
+        updated    TIMESTAMP WITH TIME ZONE
+        authorId   BIGSERIAL NOT NULL,
+        CONSTRAINT fk_author FOREIGN KEY(authorId) REFERENCES author(authorId)
+      );
+      CREATE TABLE IF NOT EXISTS author
+      (
+        authorId BIGSERIAL NOT NULL PRIMARY KEY,
+        name     VARCHAR(200) NOT NULL
+      );
+  postgresql.conf: |
+    listen_addresses = '*'
+    wal_level = replica
+    archive_mode = on
+    archive_command = 'test ! -f /database_archive/%f && cp %p /database_archive/%f'
+    archive_timeout = 60

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    chart-version: 0.0.1
+    component-name: sample-postgres
+  name: sample-postgres-service
+spec:
+  selector:
+    component-framework: postgres
+    component-name: sample-postgres
+  type: ClusterIP
+  ports:
+    - name: tcp-postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
