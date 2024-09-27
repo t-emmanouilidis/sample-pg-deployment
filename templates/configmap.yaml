@@ -4,20 +4,18 @@ metadata:
   name: sample-postgres-configmap
 data:
   setup-db.sql: |
-      CREATE TABLE IF NOT EXISTS book
-      (
-        id         BIGSERIAL NOT NULL PRIMARY KEY,
-        isbn       VARCHAR(50)  NOT NULL,
-        title      VARCHAR(500) NOT NULL,
-        created    TIMESTAMP WITH TIME ZONE,
-        updated    TIMESTAMP WITH TIME ZONE
-        authorId   BIGSERIAL NOT NULL,
-        CONSTRAINT fk_author FOREIGN KEY(authorId) REFERENCES author(authorId)
-      );
       CREATE TABLE IF NOT EXISTS author
       (
-        authorId BIGSERIAL NOT NULL PRIMARY KEY,
+        id BIGSERIAL PRIMARY KEY,
         name     VARCHAR(200) NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS book
+      (
+        id       BIGSERIAL PRIMARY KEY,
+        isbn     VARCHAR(50) NOT NULL,
+        title    VARCHAR(500) NOT NULL,
+        modified TIMESTAMP WITH TIME ZONE NOT NULL,
+        authorId BIGSERIAL NOT NULL REFERENCES author (id)
       );
   postgresql.conf: |
     listen_addresses = '*'
